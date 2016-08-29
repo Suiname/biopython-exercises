@@ -114,7 +114,7 @@ def longest_ORF(orflist):
                 longest_value = len(orf['orf'])
                 longest_index = orf['index']
                 longest_identifier = orf_entry['identifier']
-    result = {'longest_value': longest_value * 3, 'index': longest_index, 'identifier': longest_identifier}
+    result = {'longest_value': longest_value * 3, 'index': longest_index+1, 'identifier': longest_identifier}
     print("Longest ORF: ", result)
     return result
 
@@ -131,7 +131,7 @@ def longest_by_ID(orflist, ID):
     if longest_value == 0 or longest_index == 0:
         result = "NO Results Found"
     else:
-        result = {'longest_value': longest_value * 3, 'index': longest_index, 'identifier': longest_identifier}
+        result = {'longest_value': longest_value * 3, 'index': longest_index+1, 'identifier': longest_identifier}
     print("Longest ORF: ", result)
     return result
 
