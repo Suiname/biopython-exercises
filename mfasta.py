@@ -118,6 +118,23 @@ def longest_ORF(orflist):
     print("Longest ORF: ", result)
     return result
 
+def longest_by_ID(orflist, ID):
+    longest_value = 0
+    longest_index = 0
+    for index, orf_entry in enumerate(orflist):
+        if orf_entry['identifier'].lower() == ID.lower():
+            for orf in orf_entry['orfs']:
+                if len(orf['orf']) > longest_value:
+                    longest_value = len(orf['orf'])
+                    longest_index = orf['index']
+                    longest_identifier = orf_entry['identifier']
+    if longest_value == 0 or longest_index == 0:
+        result = "NO Results Found"
+    else:
+        result = {'longest_value': longest_value * 3, 'index': longest_index, 'identifier': longest_identifier}
+    print("Longest ORF: ", result)
+    return result
+
 sequences_list = get_sequences(fasta)
 print("*** Sequences List ***")
 print(sequences_list)
@@ -135,9 +152,17 @@ frame_list = find_frames(sequences_list)
 
 orf_list = get_ORFS(frame_list)
 # print("Frame 1 list: ", orf_list['frame_1_list'])
+print('\n****** Longest Frame 1 *******\n')
 longest_ORF(orf_list['frame_1_list'])
 # print("Frame 2 list: ", orf_list['frame_2_list'])
+print('\n****** Longest Frame 2 *******\n')
+longest_ORF(orf_list['frame_2_list'])
 # print("Frame 3 list: ", orf_list['frame_3_list'])
+print('\n****** Longest Frame 3 *******\n')
+longest_ORF(orf_list['frame_3_list'])
+
+print('\n****** Longest Frame 3 by ID *******\n')
+longest_by_ID(orf_list['frame_3_list'], 'g')
 # for ORF in orf_list['frame_1_list']:
 #     print("ORF: ", ORF['orfs'])
 # for ORF in orf_list['frame_2_list']:
