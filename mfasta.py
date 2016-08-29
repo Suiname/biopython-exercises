@@ -105,7 +105,18 @@ def get_ORFS(framedict):
     return {'frame_1_list': frame_1_list, 'frame_2_list': frame_2_list, 'frame_3_list': frame_3_list}
 
 def longest_ORF(orflist):
-    return null
+    longest_value = 0
+    longest_index = 0
+    longest_identifier = ''
+    for index, orf_entry in enumerate(orflist):
+        for orf in orf_entry['orfs']:
+            if len(orf['orf']) > longest_value:
+                longest_value = len(orf['orf'])
+                longest_index = orf['index']
+                longest_identifier = orf_entry['identifier']
+    result = {'longest_value': longest_value * 3, 'index': longest_index, 'identifier': longest_identifier}
+    print("Longest ORF: ", result)
+    return result
 
 sequences_list = get_sequences(fasta)
 print("*** Sequences List ***")
@@ -123,9 +134,10 @@ print("Find ORFs")
 frame_list = find_frames(sequences_list)
 
 orf_list = get_ORFS(frame_list)
-print("Frame 1 list: ", orf_list['frame_1_list'])
-print("Frame 2 list: ", orf_list['frame_2_list'])
-print("Frame 3 list: ", orf_list['frame_3_list'])
+# print("Frame 1 list: ", orf_list['frame_1_list'])
+longest_ORF(orf_list['frame_1_list'])
+# print("Frame 2 list: ", orf_list['frame_2_list'])
+# print("Frame 3 list: ", orf_list['frame_3_list'])
 # for ORF in orf_list['frame_1_list']:
 #     print("ORF: ", ORF['orfs'])
 # for ORF in orf_list['frame_2_list']:
