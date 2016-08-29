@@ -1,4 +1,4 @@
-fasta = open('dna.example.fasta','r')
+fasta = open('dna.example.fasta')
 
 # function no longer neccessary, since it can be computed from the sequence info
 # def find_records(fastafile):
@@ -14,23 +14,27 @@ fasta = open('dna.example.fasta','r')
 
 def get_sequences(fastafile):
     sequences = []
-    tempsequence = {'identifier': '', 'sequence': '', 'length': ''}
+    tempsequence = ''
+    identifier = ''
     for line in fastafile:
         if line[:1] != '>':
-            tempsequence['sequence'] += line.rstrip()
+            tempsequence += line.rstrip()
         else:
-            if tempsequence['identifier'] != '':
-                # print("Appending Sequence: ", tempsequence)
-                sequences.append(tempsequence)
-                tempsequence['identifier'] = line.split('|')[0].split('>')[1]
-                tempsequence['sequence'] = ''
+            if identifier != '':
+                print("Appending Sequence: ", tempsequence)
+                sequences.append({'sequence': tempsequence, 'identifier': identifier})
+                identifier = line.split('|')[0].split('>')[1]
+                tempsequence = ''
             else: #first line
                 # print("First Line Found!")
-                tempsequence['identifier'] = line.split('|')[0].split('>')[1]
-                tempsequence['sequence'] = ''
-    sequences.append(tempsequence) #at the end, append the last sequence
+                identifier = line.split('|')[0].split('>')[1]
+                tempsequence = ''
+
+    sequences.append({'sequence': tempsequence, 'identifier': identifier}) #at the end, append the last sequence
+    print("Sequences within get_sequences: ", sequences)
     for sequence in sequences:
         sequence['length'] = len(sequence['sequence'])
+
     return sequences
 
 def sequence_lengths(sequences):
@@ -51,6 +55,57 @@ def sequence_lengths(sequences):
             shortest= sequence['length']
     return {'longest': longest, 'longest_list': longest_list, 'shortest': shortest, 'shortest_list': shortest_list}
 
+def split_by_n( seq, n ):
+    """A generator to divide a sequence into chunks of n units."""
+    while seq:
+        yield seq[:n]
+        seq = seq[n:]
+
+def find_frames(sequences):
+    orf_list = {'frame_1_list': [], 'frame_2_list': [], 'frame_3_list': []}
+    frame_1 = []
+    frame_2 = []
+    frame_3 = []
+    for sequence in sequences:
+        #to do - find all ORFs
+        frame_1 = list(split_by_n(sequence['sequence'], 3))
+        orf_list['frame_1_list'].append({'identifier': sequence['identifier'], 'sequence': frame_1})
+        frame_2 = [sequence['sequence'][:1]]
+        frame_2 += (list(split_by_n(sequence['sequence'][1:], 3)))
+        orf_list['frame_2_list'].append({'identifier': sequence['identifier'], 'sequence': frame_2})
+        frame_3 = [sequence['sequence'][:2]]
+        frame_3 += (list(split_by_n(sequence['sequence'][2:], 3)))
+        orf_list['frame_3_list'].append({'identifier': sequence['identifier'], 'sequence': frame_3})
+    return orf_list
+
+def find_ORFs(framelist):
+    orf_list = []
+    start_index = 0
+    end_index = 0
+    for i, frame in enumerate(framelist):
+        if frame.lower() == 'atg':
+            start_index = i
+        elif (frame.lower() == 'taa' or frame.lower() == 'tag' or frame.lower() == 'tga') and start_index != 0:
+            end_index = i
+            orf_list.append({'orf': framelist[start_index:end_index], 'index': start_index})
+            end_index = 0
+            start_index = 0
+    return orf_list
+
+def get_ORFS(framedict):
+    frame_1_list = []
+    frame_2_list = []
+    frame_3_list = []
+    for frame in framedict['frame_1_list']:
+        frame_1_list.append({'identifier': frame['identifier'], 'orfs': find_ORFs(frame['sequence'])})
+    for frame in framedict['frame_2_list']:
+        frame_2_list.append({'identifier': frame['identifier'], 'orfs': find_ORFs(frame['sequence'])})
+    for frame in framedict['frame_3_list']:
+        frame_3_list.append({'identifier': frame['identifier'], 'orfs': find_ORFs(frame['sequence'])})
+    return {'frame_1_list': frame_1_list, 'frame_2_list': frame_2_list, 'frame_3_list': frame_3_list}
+
+def longest_ORF(orflist):
+    return null
 
 sequences_list = get_sequences(fasta)
 print("*** Sequences List ***")
@@ -60,7 +115,23 @@ print("Number of Records: ", len(sequences_list))
 length_list = sequence_lengths(sequences_list)
 print("*** Sequence Lengths ***")
 print("Longest Sequence: ", length_list['longest'])
-print("Shortest Sequnce: ", length_list['shortest'])
+print("Shortest Sequence: ", length_list['shortest'])
 print("Longest List: ", length_list['longest_list'])
 print("\n**********************\n")
 print("Shortest List: ", length_list['shortest_list'])
+print("Find ORFs")
+frame_list = find_frames(sequences_list)
+
+orf_list = get_ORFS(frame_list)
+print("Frame 1 list: ", orf_list['frame_1_list'])
+print("Frame 2 list: ", orf_list['frame_2_list'])
+print("Frame 3 list: ", orf_list['frame_3_list'])
+# for ORF in orf_list['frame_1_list']:
+#     print("ORF: ", ORF['orfs'])
+# for ORF in orf_list['frame_2_list']:
+#     print("ORF: ", ORF['orfs'])
+# for ORF in orf_list['frame_3_list']:
+#     print("ORF: ", ORF['orfs'])
+# print("Max Frame 1: ", max(orf_list['frame_1_list']))
+# print("Max Frame 2: ", max(orf_list['frame_2_list']))
+# print("Max Frame 3: ", max(orf_list['frame_3_list']))
